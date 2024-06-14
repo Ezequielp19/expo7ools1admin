@@ -38,7 +38,7 @@
         <ion-label>Imagen</ion-label>
         <input type="file" (change)="onFileSelected($event)" />
       </ion-item>
-      <ion-button expand="block" shape="round" color="success"  type="submit">Guardar</ion-button>
+      <ion-button expand="block" shape="round" color="success" [disabled]="newCategoriaForm.invalid" type="submit">Guardar</ion-button>
       <ion-button expand="block" shape="round" color="light" (click)="toggleForm()">Cancelar</ion-button>
     </form>
   </ion-card>
@@ -47,5 +47,3 @@
     <ion-spinner name="bubbles"></ion-spinner>
   </div>
 </ion-content>
-
-
