@@ -29,20 +29,23 @@
   </ion-grid>
 
   <ion-card *ngIf="showForm">
-    <ion-item>
-      <ion-label>Nombre</ion-label>
-      <ion-input [(ngModel)]="newCategoria.nombre"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label>Imagen</ion-label>
-      <input type="file" (change)="onFileSelected($event)" />
-    </ion-item>
-    <ion-button expand="block" shape="round" color="success" (click)="save()">Guardar</ion-button>
-    <ion-button expand="block" shape="round" color="light" (click)="toggleForm()">Cancelar</ion-button>
+    <form [formGroup]="newCategoriaForm" (ngSubmit)="save()">
+      <ion-item>
+        <ion-label>Nombre</ion-label>
+        <ion-input formControlName="nombre"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Imagen</ion-label>
+        <input type="file" (change)="onFileSelected($event)" />
+      </ion-item>
+      <ion-button expand="block" shape="round" color="success" [disabled]="newCategoriaForm.invalid" type="submit">Guardar</ion-button>
+      <ion-button expand="block" shape="round" color="light" (click)="toggleForm()">Cancelar</ion-button>
+    </form>
   </ion-card>
 
   <div *ngIf="cargando" style="text-align: center;">
     <ion-spinner name="bubbles"></ion-spinner>
   </div>
 </ion-content>
+
 
