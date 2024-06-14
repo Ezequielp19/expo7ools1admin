@@ -1,21 +1,21 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { IonBackButton, IonButton, IonButtons, IonCard, IonCol, IonContent, IonFooter, IonGrid, IonHeader, IonIcon, IonItem, IonLabel, IonModal, IonRow, IonSelectOption, IonSpinner, IonTitle, IonToolbar} from '@ionic/angular/standalone';
+import { IonBackButton, IonButton, IonButtons, IonCard, IonCol, IonContent, IonFooter, IonGrid, IonHeader, IonIcon, IonItem, IonLabel, IonModal, IonRow, IonSelectOption, IonSpinner, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 import { FirestoreService } from '../../../../common/services/firestore.service';
 import { Categoria } from '../../../../common/models/categoria.model';
 import { AlertController, LoadingController } from '@ionic/angular';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 @Component({
   standalone: true,
-  imports: [IonCard,IonSpinner, IonButton, IonContent, IonTitle,IonHeader, IonIcon, IonModal, IonBackButton, IonToolbar, IonButtons, IonCol,IonGrid,IonRow,IonLabel,IonItem,IonFooter,IonSelectOption, CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [IonCard, IonSpinner, IonButton, IonContent, IonTitle, IonHeader, IonIcon, IonModal, IonBackButton, IonToolbar, IonButtons, IonCol, IonGrid, IonRow, IonLabel, IonItem, IonFooter, IonSelectOption, CommonModule, FormsModule, ReactiveFormsModule],
   selector: 'app-categorias',
   templateUrl: './categoria.component.html',
   styleUrls: ['./categoria.component.scss'],
 })
 export class CategoriasPage implements OnInit {
   categorias: Categoria[] = [];
-  newCategoria: Categoria = this.initCategoria();
+  newCategoriaForm: FormGroup;
   cargando = false;
   showForm = false;
   imagenCategoria: File | null = null;
@@ -24,8 +24,14 @@ export class CategoriasPage implements OnInit {
     private firestoreService: FirestoreService,
     private alertController: AlertController,
     private loadingController: LoadingController,
-    private changeDetectorRef: ChangeDetectorRef
-  ) {}
+    private changeDetectorRef: ChangeDetectorRef,
+    private fb: FormBuilder
+  ) {
+    this.newCategoriaForm = this.fb.group({
+      nombre: ['', Validators.required],
+      imagen: ['']
+    });
+  }
 
   async ngOnInit() {
     this.categorias = await this.firestoreService.getCategorias();
@@ -40,22 +46,24 @@ export class CategoriasPage implements OnInit {
     });
   }
 
-  initCategoria(): Categoria {
-    return {
-      id: this.firestoreService.createIdDoc(),
-      nombre: '',
-      imagen: '',
-    };
-  }
-
   async save() {
+    if (this.newCategoriaForm.invalid) {
+      return;
+    }
+
     this.cargando = true;
-    const categoriaData = { ...this.newCategoria };
+    const categoriaData: Categoria = {
+      id: this.firestoreService.createIdDoc(),
+      nombre: this.newCategoriaForm.value.nombre,
+      imagen: this.imagenCategoria ? this.imagenCategoria.name : ''
+    };
+
     try {
       await this.firestoreService.addCategoria(categoriaData, this.imagenCategoria);
-      this.newCategoria = this.initCategoria();
+      this.newCategoriaForm.reset();
       this.showForm = false;
       this.cargando = false;
+      this.loadCategorias();  // Update the list of categories
     } catch (error) {
       console.error('Error al agregar la categoría:', error);
       this.cargando = false;
@@ -66,14 +74,14 @@ export class CategoriasPage implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.imagenCategoria = file;
-      this.newCategoria.imagen = file.name;
+      this.newCategoriaForm.patchValue({ imagen: file.name });
     }
   }
 
   toggleForm() {
     this.showForm = !this.showForm;
     if (!this.showForm) {
-      this.newCategoria = this.initCategoria();
+      this.newCategoriaForm.reset();
       this.imagenCategoria = null;
     }
   }
@@ -104,7 +112,7 @@ export class CategoriasPage implements OnInit {
               await this.firestoreService.deleteCategoria(categoria);
               this.categorias = this.categorias.filter(c => c.id !== categoria.id);
               console.log(`Categoría eliminada: ${categoria.id}`);
-              await this.loadCategorias();
+              this.loadCategorias();
             } catch (error) {
               console.error('Error eliminando la categoría:', error);
             } finally {
