@@ -12,6 +12,7 @@ import {
   orderBy,
   writeBatch,
   setDoc,
+collectionData,
 } from '@angular/fire/firestore';
 import { Marca } from '../models/marca.model';
 import { Categoria } from '../models/categoria.model';
@@ -25,6 +26,7 @@ import {
 } from '@angular/fire/storage';
 import { AngularFirestore } from '@angular/fire/compat/firestore/firestore';
 import { v4 as uuidv4 } from 'uuid';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -326,4 +328,14 @@ async getEtiquetas(): Promise<string[]> {
 
   await batch.commit();
 }
+
+createIdDoc(): string {
+    return uuidv4();
+  }
+
+  getCollectionChanges<T>(path: string): Observable<T[]> {
+    const itemCollection = collection(this.firestore, path);
+    return collectionData(itemCollection, { idField: 'id' }) as Observable<T[]>;
+  }
+
 }
